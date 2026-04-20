@@ -1,0 +1,115 @@
+name: Build .NET Artifacts
+
+on:
+  push:
+    branches:
+      - devbuild
+  workflow_dispatch: 
+
+jobs:
+  variables:
+    runs-on: ubuntu-latest
+    outputs:
+      timestamp: ${{ steps.get-timestamp.outputs.timestamp }}
+      short-sha: ${{ steps.get-short-sha.outputs.commit_short_sha }}
+    steps:
+      - name: Get Timestamp
+        id: get-timestamp
+        run: echo "timestamp=$(date +"%Y%m%d.%H%M%S")" >> $GITHUB_OUTPUT
+
+  build:
+    needs: variables
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        runtime:
+          - win-x64
+#          - win-x86
+        dotnet:
+          - tfm: net8.0
+            version: '8.0.x'
+            config: Release
+          - tfm: net10.0
+            version: '10.0.x'
+            config: Release
+          - tfm: net10.0
+            version: '10.0.x'
+            config: SelfContained
+            # only build one self-contained version per runtime (otherwise update artifact filename generation below)
+
+    env:
+      TIMESTAMP: ${{needs.variables.outputs.timestamp}}
+      UNP4K_VERSION: 4.0.0-a.${{ github.ref_name }}.${{needs.variables.outputs.timestamp}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get short git commit SHA
+        id: get-short-sha
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
+      - name: Setup .NET ${{ matrix.dotnet.version }}
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ matrix.dotnet.version }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build and Publish
+        run: dotnet publish -c ${{ matrix.dotnet.config }} -r ${{ matrix.runtime }} -f ${{ matrix.dotnet.tfm }}
+
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          $rid = "${{ matrix.runtime }}"
+          $dnv = "${{ matrix.dotnet.tfm }}"
+          $config = "${{ matrix.dotnet.config }}"
+
+          # Output publish directories per project
+          $publishMap = @{
+            "unp4k.fs"    = "src\unp4k.fs\bin\$config\$dnv\$rid\publish"
+            "unforge.cli" = "src\unforge.cli\bin\$config\$dnv\$rid\publish"
+            "unp4k"       = "src\unp4k\bin\$config\$dnv\$rid\publish"
+          }
+
+          # Ensure an artifacts directory exists for this .NET and runtime combination
+          $artifactsRoot = "artifacts\$dnv\$rid"
+          New-Item -ItemType Directory -Path $artifactsRoot -Force | Out-Null
+
+          foreach ($name in $publishMap.Keys) {
+            $srcdir = $publishMap[$name]
+            if (Test-Path $srcdir) {
+              # Copy project publish contents to artifacts directory
+              $outdir = Join-Path $artifactsRoot $name
+              if (Test-Path $outdir) { Remove-Item $outdir -Recurse -Force }
+              New-Item -ItemType Directory -Path $outdir -Force | Out-Null
+              Copy-Item -Path (Join-Path $srcdir '*') -Destination $outdir -Recurse
+            }
+          }
+
+      - name: Determine artifact filename
+        id: artifact-name
+        shell: bash
+        run: |
+          rid="${{ matrix.runtime }}"
+          dnv="${{ matrix.dotnet.tfm }}"
+          config="${{ matrix.dotnet.config }}"
+
+          if [[ "$config" = "SelfContained" ]]; then
+            echo "artifact_file=unp4k-scd-$rid-v$UNP4K_VERSION+$COMMIT_SHORT_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "artifact_file=unp4k-$dnv-$rid-v$UNP4K_VERSION+$COMMIT_SHORT_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload build artifacts (per .NET and runtime)
+        uses: actions/upload-artifact@v7
+        with:
+          #name: unp4k-${{ matrix.dotnet.tfm }}-${{ matrix.runtime }}-v${{ env.UNP4K_VERSION }}
+          name: ${{ steps.artifact-name.outputs.artifact_file }}
+          path: artifacts/${{ matrix.dotnet.tfm }}/${{ matrix.runtime }}/*
+          if-no-files-found: error
