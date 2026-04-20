@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net481;netstandard2.0;net6.0;net8.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <PackageId>SharpZipLib</PackageId>
     <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>ICSharpCode.SharpZipLib.snk</AssemblyOriginatorKeyFile>
@@ -10,7 +10,8 @@
     <RepositoryUrl>https://github.com/icsharpcode/SharpZipLib</RepositoryUrl>
     <PackageReleaseNotes>This is a pre-release version! Please see https://github.com/icsharpcode/SharpZipLib/wiki/Release-1.0 for more information.</PackageReleaseNotes>
     <PackageLicenseUrl>https://github.com/icsharpcode/SharpZipLib/blob/master/LICENSE.txt</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/icsharpcode/SharpZipLib</PackageProjectUrl> 
+    <PackageProjectUrl>https://github.com/icsharpcode/SharpZipLib</PackageProjectUrl>
+    <Configurations>Debug;Release;SelfContained</Configurations> 
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -20,10 +21,11 @@
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release' OR '$(Configuration)'=='SelfContained'">
 		<Optimize>True</Optimize>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
+		<NoWarn>CS0162,CS0169</NoWarn>
 	</PropertyGroup>
 	
   <ItemGroup>

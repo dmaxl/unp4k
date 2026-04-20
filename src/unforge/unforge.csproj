@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<LangVersion>Latest</LangVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Configurations>Debug;Release;SelfContained</Configurations>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -13,10 +14,12 @@
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release' OR '$(Configuration)'=='SelfContained'">
 		<Optimize>True</Optimize>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
+		<PublishTrimmed>false</PublishTrimmed>
+		<NoWarn>CS0162</NoWarn>
 	</PropertyGroup>
 	
 </Project>

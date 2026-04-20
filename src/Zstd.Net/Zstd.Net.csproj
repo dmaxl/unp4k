@@ -1,13 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net481;netstandard2.0;net6.0;net8.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <PackageId>zstd.net</PackageId>
     <SignAssembly>False</SignAssembly>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.0.0</Version>
     <RepositoryUrl>https://github.com/dolkensp/zstd.net</RepositoryUrl>
     <PackageReleaseNotes>This is a multi-platform wrapper for libzstd.</PackageReleaseNotes>
+    <Configurations>Debug;Release;SelfContained</Configurations>
   </PropertyGroup>
 	
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -17,10 +18,11 @@
 		<DefineConstants>TRACE;DEBUG</DefineConstants>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	<PropertyGroup Condition="'$(Configuration)'=='Release' OR '$(Configuration)'=='SelfContained'">
 		<Optimize>True</Optimize>
 		<DebugType>none</DebugType>
 		<DebugSymbols>false</DebugSymbols>
+		<NoWarn>CS0162</NoWarn>
 	</PropertyGroup>
 
   <ItemGroup>

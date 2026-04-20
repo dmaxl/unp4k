@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-		<TargetFrameworks>net6.0;net8.0;net10.0</TargetFrameworks>
+		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<LangVersion>Latest</LangVersion>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<OutputType>Exe</OutputType>
     <StartupObject>unp4k.Program</StartupObject>
+    <Configurations>Debug;Release;SelfContained</Configurations>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -22,12 +23,17 @@
 		<DebugSymbols>false</DebugSymbols>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net10.0'">
+	<PropertyGroup Condition="'$(Configuration)'=='SelfContained'">
+	  <Optimize>True</Optimize>
+	  <DebugType>none</DebugType>
+	  <DebugSymbols>false</DebugSymbols>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>true</SelfContained>
-		<PublishTrimmed>false</PublishTrimmed>
+		<PublishTrimmed>true</PublishTrimmed>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<TrimMode>partial</TrimMode>
 	</PropertyGroup>
-	
+
   <ItemGroup>
     <ProjectReference Include="..\ICSharpCode.SharpZipLib\ICSharpCode.SharpZipLib.csproj" />
   </ItemGroup>
